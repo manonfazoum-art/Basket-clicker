@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basket Clicker - Admin Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --orange: #FF5722; --bg: #0D0D12; --card: #1A1A24; --gold: #FFD700; --text: #FFFFFF; --green: #00E676; --red: #ff3d00; --blue: #2196F3; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Barlow Condensed', sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        /* Login Fix */
+        #login-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; }
+        .login-box { width: 100%; max-width: 300px; text-align: center; }
+        input { padding: 15px; border-radius: 10px; border: 1px solid #444; width: 100%; margin-bottom: 15px; background: #1A1A24; color: white; font-size: 1rem; }
+        #btn-connect { background: var(--orange); color: white; padding: 15px; border-radius: 10px; width: 100%; font-weight: bold; border: none; cursor: pointer; font-size: 1.1rem; }
+        
+        /* UI */
+        .score-bar { padding: 10px 15px; background: var(--card); display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #222; }
+        .score-val { font-size: 1.6rem; color: var(--gold); font-weight: bold; }
+        .tabs { display: flex; background: var(--card); border-bottom: 2px solid var(--orange); overflow-x: auto; }
+        .tab { flex: 1; padding: 12px 5px; text-align: center; font-weight: bold; opacity: 0.4; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+        .tab.active { opacity: 1; color: var(--orange); background: rgba(255,87,34,0.1); }
+        .content { flex: 1; overflow-y: auto; padding: 12px; display: none; padding-bottom: 50px; }
+        .content.active { display: block; }
+        
+        /* Game Area */
+        .court-container { height: 200px; background: #2c2c34; border-radius: 15px; position: relative; display: flex; align-items: center; justify-content: center; border: 3px solid #444; }
+        .ball { width: 80px; height: 80px; background: radial-gradient(circle at 30% 30%, #FF7043, #E64A19); border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 2rem; z-index: 10; transition: 0.1s; }
+        .ball:active { transform: scale(0.9); }
+        
+        /* Cards */
+        .item-card { background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .buy-btn { background: #222; border: 1px solid var(--orange); color: white; padding: 8px; border-radius: 6px; font-weight: bold; min-width: 75px; }
+
+        /* Admin */
+        #admin-panel { display: none; background: #1a0a0a; border: 2px solid var(--red); padding: 15px; border-radius: 10px; margin-top: 10px; }
+        .admin-section { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #333; }
+        .admin-input { width: 100%; padding: 8px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: white; border-radius: 4px; }
+        .admin-btn { width: 100%; padding: 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h1 style="color:var(--orange); margin-bottom: 20px;">BASKET CLICKER</h1>
+            <input type="text" id="pseudo-input" placeholder="Ton Pseudo">
+            <input type="password" id="pass-input" placeholder="Mot de Passe">
+            <button id="btn-connect">ENTRER DANS LE STADE</button>
+            <p id="login-status" style="margin-top:10px; font-size:0.8rem; color:var(--gold); display:none;">Connexion au serveur...</p>
+        </div>
+    </div>
+
+    <div class="score-bar">
+        <div><div class="score-val" id="score-val">0 🏀</div><div id="ps-val" style="color:var(--green); font-size: 0.8rem;">+0/s</div></div>
+        <div id="user-tag" style="font-size: 0.7rem; opacity: 0.5;"></div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="nav('jeu')">JEU</div>
+        <div class="tab" onclick="nav('up')">TIRS (7)</div>
+        <div class="tab" onclick="nav('team')">TEAM (7)</div>
+        <div class="tab" onclick="nav('courts')">STADES (7)</div>
+        <div class="tab" onclick="nav('top')">MONDIAL</div>
+    </div>
+
+    <div id="jeu" class="content active">
+        <div class="court-container" id="main-court">
+            <div class="ball" id="ball-click">🏀</div>
+        </div>
+    </div>
+
+    <div id="up" class="content"></div>
+    <div id="team" class="content"></div>
+    <div id="courts" class="content"></div>
+    
+    <div id="top" class="content">
+        <div id="list-top"></div>
+        <div id="admin-panel">
+            <div class="admin-section">
+                <h5 style="color:red">GHOST MODE</h5>
+                <button id="ghost-btn" class="admin-btn" style="background:var(--blue); color:white;">OFF</button>
+            </div>
+            <div class="admin-section">
+                <h5 style="color:red">GIVE DISTANCE</h5>
+                <input type="text" id="target-pseudo" class="admin-input" placeholder="Pseudo Cible">
+                <input type="number" id="target-amount" class="admin-input" placeholder="Montant">
+                <button id="btn-give" class="admin-btn" style="background:var(--green); color:black;">ENVOYER</button>
+            </div>
+            <div class="admin-section">
+                <h5 style="color:red">PRIX BOUTIQUE</h5>
+                <select id="price-cat" class="admin-input"><option value="up">Tirs</option><option value="team">Team</option></select>
+                <input type="number" id="price-idx" class="admin-input" placeholder="Index (0-6)">
+                <input type="number" id="price-val" class="admin-input" placeholder="Nouveau Prix">
+                <button id="btn-price" class="admin-btn" style="background:var(--gold); color:black;">CHANGER PRIX</button>
+            </div>
+        </div>
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB2ZTucH9lOCYOK9gHgI0CYOK9gHg",
+        authDomain: "basket-clicker.firebaseapp.com",
+        projectId: "basket-clicker",
+        storageBucket: "basket-clicker.appspot.com",
+        messagingSenderId: "468215641580",
+        appId: "1:468215641580:web:b2eb3d00164c000e"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let score = 0, pwr = 1, ps = 0, multi = 1, user = "", isAdmin = false, isGhost = false;
+
+    const data = {
+        up: [{n:'Grip Glue', c:15, i:1, ico:'🧤'}, {n:'Double Pas', c:100, i:5, ico:'🏃'}, {n:'Tir 3pts', c:500, i:20, ico:'🎯'}, {n:'Ballon Pro', c:2000, i:100, ico:'🏐'}, {n:'Sneakers Air', c:10000, i:450, ico:'👟'}, {n:'Maillot Star', c:50000, i:2000, ico:'🎽'}, {n:'Bras Bionique', c:250000, i:10000, ico:'🦾'}],
+        team: [{n:'Ramasseur', c:50, i:1, ico:'👦'}, {n:'Junior', c:400, i:8, ico:'⛹️'}, {n:'Coach', c:2000, i:40, ico:'👨‍🏫'}, {n:'Pivot NBA', c:15000, i:250, ico:'🦒'}, {n:'Meneur All-Star', c:100000, i:1500, ico:'⭐'}, {n:'Légende', c:500000, i:8000, ico:'👑'}, {n:'IA Basket', c:2000000, i:40000, ico:'🤖'}],
+        courts: [{n:'City Stade', c:1000, i:1.2, col:'#444', ico:'🏙️'}, {n:'Gymnase', c:10000, i:1.5, col:'#5d4037', ico:'🏫'}, {n:'Arena Locale', c:50000, i:2, col:'#1565c0', ico:'🏟️'}, {n:'Stade National', c:200000, i:3, col:'#2e7d32', ico:'🇫🇷'}, {n:'Madison Square', c:1000000, i:5, col:'#c62828', ico:'🗽'}, {n:'Lune Arena', c:10000000, i:10, col:'#455a64', ico:'🌙'}, {n:'Galaxie Court', c:100000000, i:50, col:'#311b92', ico:'🌌'}]
+    };
+
+    // --- CONNEXION REPAREE ---
+    document.getElementById('btn-connect').onclick = async () => {
+        document.getElementById('login-status').style.display = "block";
+        const pseudoInput = document.getElementById('pseudo-input').value;
+        const passInput = document.getElementById('pass-input').value;
+
+        user = pseudoInput || "Joueur" + Math.floor(Math.random()*99);
+        
+        if(user === "LouisAdmin" && passInput === "Basket76") {
+            isAdmin = true;
+            document.getElementById('admin-panel').style.display = 'block';
+        }
+
+        try {
+            const snap = await getDoc(doc(db, "players", user));
+            if(snap.exists()) score = snap.data().score || 0;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('user-tag').innerText = "Joueur: " + user;
+            render(); updateUI(); startLeaderboard();
+        } catch (e) {
+            alert("Erreur de connexion ! Vérifie tes règles Firebase.");
+            document.getElementById('login-status').innerText = "Erreur !";
+        }
+    };
+
+    // --- ACTIONS JEU ---
+    document.getElementById('ball-click').onclick = () => { score += (pwr * multi); updateUI(); save(); };
+
+    window.nav = (id) => {
+        document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
+    };
+
+    window.buy = (idx, type) => {
+        let it = data[type][idx];
+        if(score >= it.c) {
+            score -= it.c;
+            if(type === 'up') pwr += it.i;
+            if(type === 'team') ps += it.i;
+            if(type === 'courts') { multi = it.i; document.getElementById('main-court').style.backgroundColor = it.col; }
+            it.c = Math.floor(it.c * 1.5); render(); updateUI(); save();
+        }
+    };
+
+    function render() {
+        ['up', 'team', 'courts'].forEach(id => {
+            document.getElementById(id).innerHTML = data[id].map((it, i) => `
+                <div class="item-card">
+                    <div><span>${it.ico} <b>${it.n}</b></span><br><small>${it.i} ${id==='courts'?'x':'pts'}</small></div>
+                    <button class="buy-btn" onclick="buy(${i},'${id}')" ${score < it.c ? 'disabled' : ''}>${it.c.toLocaleString()}</button>
+                </div>`).join('');
+        });
+    }
+
+    function updateUI() {
+        document.getElementById('score-val').innerText = Math.floor(score).toLocaleString() + " 🏀";
+        document.getElementById('ps-val').innerText = "+" + (ps * multi).toLocaleString() + "/s";
+    }
+
+    async function save() { if(user) await setDoc(doc(db, "players", user), { score: Math.floor(score) }, { merge: true }); }
+
+    function startLeaderboard() {
+        onSnapshot(query(collection(db, "players"), orderBy("score", "desc"), limit(10)), (snap) => {
+            let h = "";
+            snap.forEach(d => { 
+                if(!(isGhost && d.id === "LouisAdmin")) {
+                    h += `<div class="item-card">
+                        <span>${d.id} : <b>${d.data().score.toLocaleString()}</b></span>
+                        ${isAdmin ? `<button onclick="window.banPlayer('${d.id}')" style="background:red; color:white; border:none; padding:4px; border-radius:4px;">🗑️</button>` : ''}
+                    </div>`; 
+                }
+            });
+            document.getElementById('list-top').innerHTML = h;
+        });
+    }
+
+    // --- FONCTIONS ADMIN ATTACHÉES ---
+    document.getElementById('ghost-btn').onclick = () => {
+        isGhost = !isGhost;
+        document.getElementById('ghost-btn').innerText = isGhost ? "ON" : "OFF";
+        document.getElementById('ghost-btn').style.background = isGhost ? "var(--green)" : "var(--blue)";
+    };
+
+    document.getElementById('btn-give').onclick = async () => {
+        const p = document.getElementById('target-pseudo').value;
+        const amt = parseInt(document.getElementById('target-amount').value) || 0;
+        if(p === user) { score += amt; updateUI(); save(); } 
+        else {
+            const ref = doc(db, "players", p);
+            const s = await getDoc(ref);
+            if(s.exists()) await updateDoc(ref, { score: s.data().score + amt });
+        }
+        alert("Succès !");
+    };
+
+    document.getElementById('btn-price').onclick = () => {
+        const cat = document.getElementById('price-cat').value;
+        const i = document.getElementById('price-idx').value;
+        const val = document.getElementById('price-val').value;
+        if(data[cat][i]) { data[cat][i].c = parseInt(val); render(); }
+    };
+
+    window.banPlayer = async (p) => { if(confirm("Supprimer " + p + " ?")) await deleteDoc(doc(db, "players", p)); };
+
+    setInterval(() => { if(ps > 0) { score += (ps * multi)/10; updateUI(); } }, 100);
+</script>
+</body>
+              </html>
+                
