@@ -21,7 +21,9 @@
     --green: #4CAF50;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
+  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  a, button, div, input { -webkit-touch-callout: none; }
+  button { cursor: pointer; touch-action: manipulation; }
 
   body {
     background: var(--dark);
@@ -35,10 +37,11 @@
   .header {
     background: linear-gradient(135deg, var(--dark2), var(--dark3));
     border-bottom: 2px solid var(--orange);
-    padding: 10px 16px;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     position: sticky;
     top: 0;
     z-index: 100;
@@ -47,10 +50,11 @@
 
   .game-title {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
+    font-size: 1.2rem;
     color: var(--orange);
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     text-shadow: 0 0 20px rgba(244,81,30,0.5);
+    white-space: nowrap;
   }
 
   .coins-display {
@@ -128,37 +132,64 @@
     height: 280px;
   }
 
-  .court-bg {
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(ellipse at center, var(--court-light) 0%, var(--court) 60%, #8B5E3C 100%);
-    border-radius: 16px;
-    border: 3px solid #8B5E3C;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 2px 8px rgba(255,255,255,0.1);
-    position: relative;
-    overflow: hidden;
+  /* Floor styles par terrain — appliqués dynamiquement */
+  .court-bg { width:100%;height:100%;border-radius:16px;position:relative;overflow:hidden;border:3px solid #2A2A2A;box-shadow:0 8px 32px rgba(0,0,0,0.7); }
+
+  /* Béton (rue) */
+  .floor-street {
+    background:
+      repeating-linear-gradient(0deg,rgba(255,255,255,0.03) 0px,rgba(255,255,255,0.03) 1px,transparent 1px,transparent 18px),
+      repeating-linear-gradient(90deg,rgba(255,255,255,0.03) 0px,rgba(255,255,255,0.03) 1px,transparent 1px,transparent 18px),
+      linear-gradient(160deg,#6B6B6B 0%,#555 40%,#4A4A4A 70%,#3D3D3D 100%);
+    border-color:#2A2A2A;
+  }
+  .floor-street::before {
+    content:'';position:absolute;inset:0;border-radius:13px;
+    background:linear-gradient(37deg,transparent 48%,rgba(0,0,0,0.25) 49%,rgba(0,0,0,0.25) 50%,transparent 51%),
+    linear-gradient(120deg,transparent 60%,rgba(0,0,0,0.15) 61%,rgba(0,0,0,0.15) 62%,transparent 63%);
   }
 
-  /* Court lines */
-  .court-bg::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.25);
+  /* Parquet (gymnase, indoor, arena, stade) */
+  .floor-parquet {
+    background:
+      repeating-linear-gradient(90deg,rgba(0,0,0,0.08) 0px,rgba(0,0,0,0.08) 1px,transparent 1px,transparent 28px),
+      repeating-linear-gradient(0deg,rgba(0,0,0,0.05) 0px,rgba(0,0,0,0.05) 1px,transparent 1px,transparent 8px),
+      linear-gradient(170deg,#C8860A 0%,#A0620A 30%,#8B5209 60%,#7A4508 100%);
+    border-color:#5C3006;
+  }
+  .floor-parquet::before {
+    content:'';position:absolute;inset:0;border-radius:13px;
+    background:
+      repeating-linear-gradient(90deg,rgba(255,200,100,0.06) 0px,transparent 14px,transparent 28px),
+      radial-gradient(ellipse at 50% 0%,rgba(255,220,150,0.15) 0%,transparent 60%);
   }
 
+  /* Espace */
+  .floor-space {
+    background: radial-gradient(ellipse at 50% 110%, #1565C0 0%, #0D47A1 30%, #01579B 55%, #003c6e 75%, #001529 100%);
+    border-color:#0D47A1;
+  }
+  .floor-space::before {
+    content:'';position:absolute;inset:0;border-radius:13px;
+    background:
+      radial-gradient(circle at 50% 85%, rgba(255,255,255,0.08) 0%, transparent 60%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,0.02) 0px,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 20px),
+      repeating-linear-gradient(90deg,rgba(255,255,255,0.02) 0px,rgba(255,255,255,0.02) 1px,transparent 1px,transparent 20px);
+  }
+  /* Vitre transparente + reflet */
+  .floor-space::after {
+    content:'🌍';position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);
+    font-size:120px;opacity:0.22;filter:blur(1px);pointer-events:none;
+  }
+
+  /* Cracks on the concrete */
   .court-bg::after {
     content: '';
     position: absolute;
     top: 50%;
     left: 0; right: 0;
     height: 2px;
-    background: rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.15);
     transform: translateY(-50%);
   }
 
@@ -218,50 +249,33 @@
     );
   }
 
-  /* BALL BUTTON */
   .ball-btn {
     position: absolute;
     bottom: 50px;
     left: 50%;
     transform: translateX(-50%);
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 90px;
     border-radius: 50%;
     border: none;
     cursor: pointer;
     z-index: 10;
-    background: radial-gradient(circle at 35% 35%, #FF7043, #E64A19 60%, #BF360C);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.5), 0 0 0 3px rgba(244,81,30,0.3);
-    transition: transform 0.08s, box-shadow 0.08s;
+    background: transparent;
+    box-shadow: none;
+    transition: transform 0.08s;
     -webkit-tap-highlight-color: transparent;
     outline: none;
+    padding: 0;
+    font-size: 78px;
+    line-height: 90px;
+    text-align: center;
   }
 
-  .ball-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background:
-      radial-gradient(ellipse 40% 8% at 50% 20%, rgba(0,0,0,0.5) 0%, transparent 100%),
-      radial-gradient(ellipse 8% 40% at 20% 50%, rgba(0,0,0,0.5) 0%, transparent 100%),
-      radial-gradient(ellipse 8% 40% at 80% 50%, rgba(0,0,0,0.5) 0%, transparent 100%),
-      radial-gradient(ellipse 40% 8% at 50% 80%, rgba(0,0,0,0.5) 0%, transparent 100%);
-  }
-
-  .ball-btn::after {
-    content: '';
-    position: absolute;
-    top: 12px; left: 18px;
-    width: 20px; height: 14px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.2);
-    transform: rotate(-30deg);
-  }
+  .ball-btn::before, .ball-btn::after { display: none; }
 
   .ball-btn:active {
     transform: translateX(-50%) scale(0.92);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5), 0 0 0 3px rgba(244,81,30,0.5);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
 
   /* FLOATING +1 */
@@ -541,231 +555,288 @@
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* SCROLL */
-  .main { padding-bottom: 80px; }
+  /* PLAYERS ON COURT */
+  #court-players {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 4;
+  }
+
+  .court-player {
+    position: absolute;
+    font-size: 1.4rem;
+    line-height: 1;
+    animation: playerBounce 1.2s ease-in-out infinite;
+    transform-origin: bottom center;
+  }
+
+  @keyframes playerBounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-5px); }
+  }
+
+  /* Décale l'animation pour que les joueurs bougent pas en même temps */
+  .court-player:nth-child(2)  { animation-delay: 0.2s; }
+  .court-player:nth-child(3)  { animation-delay: 0.4s; }
+  .court-player:nth-child(4)  { animation-delay: 0.6s; }
+  .court-player:nth-child(5)  { animation-delay: 0.8s; }
+  .court-player:nth-child(6)  { animation-delay: 1.0s; }
+  .court-player:nth-child(7)  { animation-delay: 0.3s; }
+  .court-player:nth-child(8)  { animation-delay: 0.7s; }
+  .court-player:nth-child(9)  { animation-delay: 0.1s; }
+  .court-player:nth-child(10) { animation-delay: 0.9s; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="game-title">🏀 Basket<br>Clicker</div>
-  <div class="coins-display">
-    <div class="coins-amount" id="coins-display">0</div>
-    <div class="coins-label">💰 Pièces</div>
-    <div class="per-sec" id="per-sec-display">+0/sec</div>
-  </div>
-</div>
-
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('click')">🏀 Tirer</div>
-  <div class="tab" onclick="switchTab('upgrade')">⬆️ Upgrades</div>
-  <div class="tab" onclick="switchTab('players')">👟 Joueurs</div>
-  <div class="tab" onclick="switchTab('terrain')">🏟️ Terrain</div>
-</div>
-
-<!-- TAB: TIRER -->
-<div class="main panel active" id="tab-click">
-  <div class="click-zone">
-    <div class="court-wrapper">
-      <div class="court-bg"></div>
-      <div class="hoop">
-        <div class="backboard"></div>
-        <div class="rim"></div>
-        <div class="net"></div>
-      </div>
-      <button class="ball-btn" id="ball-btn" onclick="handleClick(event)"></button>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-val" id="total-shots">0</div>
-        <div class="stat-lbl">Tirs</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="per-click-display">1</div>
-        <div class="stat-lbl">/ clic</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-val" id="total-earned">0</div>
-        <div class="stat-lbl">Total gagné</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- TAB: UPGRADES -->
-<div class="main panel" id="tab-upgrade">
-  <div class="section-title">⬆️ Améliorations</div>
-  <div class="upgrade-list" id="upgrade-list"></div>
-</div>
-
-<!-- TAB: JOUEURS -->
-<div class="main panel" id="tab-players">
-  <div class="section-title">👟 Recruter des joueurs</div>
-  <div id="players-list"></div>
-</div>
-
-<!-- TAB: TERRAIN -->
-<div class="main panel" id="tab-terrain">
-  <div class="section-title">🏟️ Débloquer des terrains</div>
-  <div id="terrain-list"></div>
-</div>
-
-<script>
-// =================== GAME STATE ===================
-const state = {
-  coins: 0,
-  totalEarned: 0,
-  shots: 0,
-  perClick: 1,
-  perSec: 0,
-  currentTerrain: 0,
-};
-
-// =================== UPGRADES ===================
-const upgrades = [
-  { id: 'better_shot',   name: 'Meilleur tir',      icon: '🎯', desc: '+1 pièce par clic', baseCost: 10,  costMult: 1.5, maxLevel: 20, effect: () => { state.perClick += 1; } },
-  { id: 'wrist_snap',    name: 'Claquement poignet', icon: '✋', desc: '+3 pièces par clic', baseCost: 50,  costMult: 1.6, maxLevel: 15, effect: () => { state.perClick += 3; } },
-  { id: 'three_pts',     name: '3 points',           icon: '🌟', desc: '+8 pièces par clic', baseCost: 200, costMult: 1.7, maxLevel: 10, effect: () => { state.perClick += 8; } },
-  { id: 'dunk',          name: 'Dunk',               icon: '💥', desc: '+20 pièces par clic',baseCost: 800, costMult: 1.8, maxLevel: 8,  effect: () => { state.perClick += 20; } },
-  { id: 'trick_shot',    name: 'Trick shot',         icon: '🔥', desc: '+50 pièces par clic',baseCost: 3000,costMult: 2.0, maxLevel: 5,  effect: () => { state.perClick += 50; } },
-].map(u => ({ ...u, level: 0 }));
-
-// =================== PLAYERS ===================
-const players = [
-  { id: 'amateur',  name: 'Joueur amateur',   icon: '👦', baseCost: 25,   costMult: 1.15, rate: 0.5,  count: 0 },
-  { id: 'semi_pro', name: 'Semi-pro',         icon: '🧑', baseCost: 100,  costMult: 1.15, rate: 2,    count: 0 },
-  { id: 'coach',    name: 'Coach',            icon: '👨‍💼', baseCost: 400,  costMult: 1.15, rate: 6,    count: 0 },
-  { id: 'pro',      name: 'Joueur pro',       icon: '⭐', baseCost: 1500, costMult: 1.15, rate: 20,   count: 0 },
-  { id: 'allstar',  name: 'All-Star',         icon: '🌟', baseCost: 6000, costMult: 1.15, rate: 80,   count: 0 },
-  { id: 'mvp',      name: 'MVP',              icon: '🏆', baseCost: 25000,costMult: 1.15, rate: 300,  count: 0 },
-].map(p => ({ ...p }));
-
-// =================== TERRAINS ===================
-const terrains = [
-  { id: 'street',   name: 'Terrain de rue',    icon: '🏙️', cost: 0,      bonus: 1.0,  desc: 'Votre terrain de départ' },
-  { id: 'school',   name: 'Gymnase scolaire',  icon: '🏫', cost: 500,    bonus: 1.5,  desc: '+50% toutes les pièces' },
-  { id: 'indoor',   name: 'Salle indoor',      icon: '🏟️', cost: 2500,   bonus: 2.0,  desc: 'x2 toutes les pièces' },
-  { id: 'arena',    name: 'Arena pro',         icon: '🌆', cost: 12000,  bonus: 4.0,  desc: 'x4 toutes les pièces' },
-  { id: 'stadium',  name: 'Stade NBA',         icon: '🏛️', cost: 60000,  bonus: 10.0, desc: 'x10 toutes les pièces' },
-];
-
-// =================== HELPERS ===================
-function formatNum(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return Math.floor(n).toString();
-}
-
-function getUpgradeCost(u) {
-  return Math.floor(u.baseCost * Math.pow(u.costMult, u.level));
-}
-
-function getPlayerCost(p) {
-  return Math.floor(p.baseCost * Math.pow(p.costMult, p.count));
-}
-
-function getTerrainBonus() {
-  return terrains[state.currentTerrain].bonus;
-}
-
-function calcPerSec() {
-  const base = players.reduce((sum, p) => sum + p.rate * p.count, 0);
-  return base * getTerrainBonus();
-}
-
-// =================== CLICK ===================
-function handleClick(e) {
-  const earned = state.perClick * getTerrainBonus();
-  state.coins += earned;
-  state.totalEarned += earned;
-  state.shots++;
-
-  // floating text
-  const el = document.createElement('div');
-  el.className = 'float-text';
-  el.textContent = '+' + formatNum(earned);
-  el.style.left = (e.clientX - 20) + 'px';
-  el.style.top = (e.clientY - 20) + 'px';
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 900);
-
-  updateUI();
-}
-
-// =================== BUY UPGRADE ===================
-function buyUpgrade(idx) {
-  const u = upgrades[idx];
-  if (u.level >= u.maxLevel) return;
-  const cost = getUpgradeCost(u);
-  if (state.coins < cost) return;
-  state.coins -= cost;
-  u.level++;
-  u.effect();
-  updateUI();
-  renderUpgrades();
-}
-
-// =================== BUY PLAYER ===================
-function buyPlayer(idx) {
-  const p = players[idx];
-  const cost = getPlayerCost(p);
-  if (state.coins < cost) return;
-  state.coins -= cost;
-  p.count++;
-  state.perSec = calcPerSec();
-  updateUI();
-  renderPlayers();
-}
-
-// =================== BUY TERRAIN ===================
-function buyTerrain(idx) {
-  if (idx === state.currentTerrain) return;
-  const t = terrains[idx];
-  if (state.coins < t.cost) return;
-  state.coins -= t.cost;
-  state.currentTerrain = idx;
-  state.perSec = calcPerSec();
-  updateUI();
-  renderTerrains();
-}
-
-// =================== IDLE LOOP ===================
-setInterval(() => {
-  const ps = calcPerSec();
-  if (ps > 0) {
-    const gained = ps / 20; // 50ms tick
-    state.coins += gained;
-    state.totalEarned += gained;
-    state.perSec = ps;
-    updateUI();
+<style>
+  .btn-leaderboard {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid rgba(255,215,0,0.4);
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+    white-space: nowrap;
   }
-}, 50);
+  .btn-leaderboard:active { transform: scale(0.95); background: rgba(255,215,0,0.1); }
 
-// =================== UI ===================
-function updateUI() {
-  document.getElementById('coins-display').textContent = formatNum(state.coins);
-  document.getElementById('per-sec-display').textContent = '+' + formatNum(calcPerSec()) + '/sec';
-  document.getElementById('total-shots').textContent = formatNum(state.shots);
-  document.getElementById('per-click-display').textContent = formatNum(state.perClick * getTerrainBonus());
-  document.getElementById('total-earned').textContent = formatNum(state.totalEarned);
-}
+  .lb-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--dark3);
+    margin-bottom: 8px;
+  }
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    min-width: 24px;
+    text-align: center;
+  }
+  .lb-rank.gold   { color: #FFD700; }
+  .lb-rank.silver { color: #C0C0C0; }
+  .lb-rank.bronze { color: #CD7F32; }
+  .lb-pseudo {
+    flex: 1;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+  .lb-rate {
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+  }
+  .lb-tab-btn {
+    flex: 1;
+    min-width: 70px;
+    background: var(--dark3);
+    color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    padding: 7px 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .lb-tab-btn.active {
+    background: var(--orange);
+    color: #fff;
+    border-color: var(--orange);
+  }
 
-// =================== RENDER UPGRADES ===================
-function renderUpgrades() {
-  const list = document.getElementById('upgrade-list');
-  list.innerHTML = '';
-  upgrades.forEach((u, i) => {
-    const cost = getUpgradeCost(u);
-    const maxed = u.level >= u.maxLevel;
-    const canAfford = state.coins >= cost && !maxed;
-    const progress = (u.level / u.maxLevel) * 100;
+  .lb-empty {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    padding: 20px 0;
+  }
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(244,81,30,0.4);
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-inscription:active { transform: scale(0.95); background: var(--orange-light); }
 
-    const div = document.createElement('div');
-    div.className = 'upgrade-card' + (canAfford ? ' can-afford' : '') + (maxed ? ' maxed' : '');
-    div.onclick = () => buyUpgrade(i);
-    div.innerHTML = `
-      <div class="upgrade-icon">${u.icon}</div>
-      <div class="upgrade-info">
-    
+  .btn-deconnexion {
+    background: #333;
+    color: #aaa;
+    border: 1px solid #444;
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-deconnexion:active { transform: scale(0.95); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--dark2);
+    border: 2px solid var(--orange);
+    border-radius: 16px;
+    padding: 24px 20px;
+    width: 88%;
+    max-width: 360px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--orange);
+    letter-spacing: 2px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+
+  .modal-field {
+    margin-bottom: 14px;
+  }
+
+  .modal-field label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+  }
+
+  .modal-field input {
+    width: 100%;
+    background: var(--dark3);
+    border: 1px solid rgba(244,81,30,0.3);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    outline: none;
+  }
+
+  .modal-field input:focus { border-color: var(--orange); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .btn-cancel {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: transparent;
+    color: var(--text-dim);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+
+  .btn-submit {
+    flex: 2;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--orange);
+    color: #fff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(244,81,30,0.4);
+  }
+
+  .admin-panel {
+    display: none;
+    margin-top: 20px;
+    padding: 0 16px 20px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .btn-admin {
+    width: 100%;
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    color: #1a0a00;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    padding: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(255,215,0,0.4);
+  }
+
+  .admin-modal {
+    background: var(--dark2);
+    border: 2px solid var(--gold);
+    border-radius: 16px;
+    padding: 20px;
+    width: 88%;
+    max-width: 340px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  }
+
+  .admin-modal .modal-title { color: var(--gold); }
+
+  .modal-toggle {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .admin-tab-btn {
+    background: var(--dark3);
+    color: var(--text-dim);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.82rem;
+    letter-spacing: 0.5px;
+    padding: 7px 10px;
+    cursor: pointer;
+  }
+  .admin-tab-btn.active { background: var(--orange); color: #fff; border-color: var(--orange)
